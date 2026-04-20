@@ -2,59 +2,41 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Meister Uni</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Dashboard | Meister Uni</title>
 </head>
-<body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 font-sans">
-
-    <header class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                    <i data-lucide="layout-dashboard"></i>
-                </div>
-                <span class="text-xl font-bold tracking-tight">Meister Uni</span>
-            </div>
-            <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors">
-                <i data-lucide="moon"></i>
-            </button>
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-gray-100 transition-colors">
+    <header class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 h-16 flex items-center px-4 justify-between">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+            <div class="bg-indigo-600 p-2 rounded-lg text-white"><i data-lucide="layout-dashboard"></i></div>
+            <span class="text-xl font-bold">Meister Uni</span>
         </div>
+        <button onclick="Auth.logout()" class="text-sm text-gray-500 hover:text-red-500">Logout</button>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold">Lernplan: <span id="display-subject" class="text-indigo-600">Kein Plan aktiv</span></h1>
-            <p class="text-gray-500 mt-1">Hier sind deine nächsten Schritte zum Erfolg.</p>
-        </div>
-        
+    <main class="max-w-7xl mx-auto px-4 py-10">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700">
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                        <i data-lucide="list-todo" class="text-indigo-500"></i> Deine Aufgaben
-                    </h2>
-                    <div id="task-container">
-                        <p class="text-gray-400 italic">Erstelle erst einen Plan auf der Startseite.</p>
-                    </div>
-                </div>
+                <h1 class="text-3xl font-bold mb-2">Plan für <span id="display-subject" class="text-indigo-600">...</span></h1>
+                <div id="task-container" class="mt-8"></div>
             </div>
-
             <div class="space-y-6">
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 text-center">
-                    <h2 class="text-lg font-bold mb-4">Dein Fortschritt</h2>
-                    <div class="relative w-32 h-32 mx-auto mb-4 flex items-center justify-center border-8 border-indigo-100 dark:border-slate-700 rounded-full">
-                        <span class="text-2xl font-bold">0%</span>
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-gray-100 dark:border-slate-700">
+                    <h2 class="font-bold mb-4">Fortschritt</h2>
+                    <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 mb-2">
+                        <div id="progress-bar" class="bg-indigo-600 h-3 rounded-full transition-all" style="width: 0%"></div>
                     </div>
-                    <p class="text-sm text-gray-500">Fang heute an und erreiche dein Ziel!</p>
+                    <span id="progress-text" class="text-sm font-bold text-indigo-600">0%</span>
+                </div>
+                <div class="bg-indigo-600 p-6 rounded-3xl text-white">
+                    <h2 class="font-bold mb-2">Campus Forum</h2>
+                    <p class="text-sm opacity-80 mb-4">Schau nach, was andere Studierende zu diesem Fach schreiben.</p>
+                    <a href="forum.html" class="inline-block bg-white text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold">Zum Forum</a>
                 </div>
             </div>
         </div>
     </main>
-
     <script src="app.js"></script>
-    <script>lucide.createIcons();</script>
 </body>
 </html>
