@@ -1,7 +1,8 @@
-// 1. DARK MODE LOGIC
+// --- DARK MODE LOGIK ---
 const themeToggle = document.getElementById('theme-toggle');
 const htmlElement = document.documentElement;
 
+// Beim Starten den gespeicherten Modus laden
 if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     htmlElement.classList.add('dark');
 }
@@ -11,56 +12,67 @@ themeToggle?.addEventListener('click', () => {
     localStorage.setItem('theme', htmlElement.classList.contains('dark') ? 'dark' : 'light');
 });
 
-// 2. LERNPLAN GENERATOR LOGIC
-// Diese Funktion simuliert die Berechnung eines Plans
-function generateMeisterPlan() {
-    const subject = document.getElementById('subject')?.value || "Dein Fach";
-    const date = document.getElementById('exam-date')?.value;
-    const hours = document.getElementById('hours')?.value || 5;
 
-    if(!date) {
-        alert("Bitte gib ein Prüfungsdatum an!");
+// --- LERNPLAN GENERATOR LOGIK ---
+function generateMeisterPlan() {
+    const subjectInput = document.getElementById('subject');
+    const dateInput = document.getElementById('exam-date');
+    const hoursInput = document.getElementById('hours');
+
+    if (!dateInput.value) {
+        alert("Bitte wähle ein Datum für deine Prüfung aus!");
         return;
     }
 
-    // Wir erstellen ein einfaches Objekt für den Plan
+    // Ein neues Plan-Objekt erstellen
     const newPlan = {
-        id: Date.now(),
-        subject: subject,
-        deadline: date,
-        weeklyHours: hours,
-        progress: 0,
+        subject: subjectInput.value || "Allgemeines Studium",
+        examDate: dateInput.value,
+        weeklyHours: hoursInput.value,
         tasks: [
-            { id: 1, title: "Grundlagen & Skript sichten", done: false, time: "2h" },
-            { id: 2, title: "Zusammenfassung Kapitel 1-3", done: false, time: "4h" },
-            { id: 3, title: "Übungsaufgaben Set A", done: false, time: "3h" },
-            { id: 4, title: "Altklausur Simulation", done: false, time: "5h" }
+            { title: "Material sammeln & sichten", time: "2h", done: false },
+            { title: "Kernkonzepte zusammenfassen", time: "4h", done: false },
+            { title: "Übungsfragen beantworten", time: "3h", done: false },
+            { title: "Simulation der Prüfung", time: "5h", done: false },
+            { title: "Wiederholung Problemthemen", time: "2h", done: false }
         ]
     };
 
-    // Im LocalStorage speichern, damit das Dashboard darauf zugreifen kann
+    // Im Browser-Speicher ablegen
     localStorage.setItem('activePlan', JSON.stringify(newPlan));
-    
-    // Weiterleitung zum Dashboard
+
+    // Zum Dashboard wechseln
     window.location.href = 'dashboard.html';
 }
 
-// 3. DASHBOARD LOGIC (Wird nur ausgeführt, wenn wir auf dashboard.html sind)
-if (window.location.pathname.includes('dashboard.html')) {
-    const planData = JSON.parse(localStorage.getItem('activePlan'));
-    const container = document.getElementById('task-container');
 
-    if (planData && container) {
-        document.getElementById('display-subject').innerText = planData.subject;
-        
-        container.innerHTML = planData.tasks.map(task => `
-            <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl mb-3 border border-transparent hover:border-indigo-500 transition-all cursor-pointer">
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                    <span class="font-medium">${task.title}</span>
+// --- DASHBOARD ANZEIGE LOGIK ---
+window.addEventListener('DOMContentLoaded', () => {
+    // Prüfen, ob wir auf dem Dashboard sind
+    const taskContainer = document.getElementById('task-container');
+    const subjectDisplay = document.getElementById('display-subject');
+
+    if (taskContainer && subjectDisplay) {
+        const savedPlan = JSON.parse(localStorage.getItem('activePlan'));
+
+        if (savedPlan) {
+            // Titel setzen
+            subjectDisplay.innerText = savedPlan.subject;
+
+            // Aufgaben-Liste bauen
+            taskContainer.innerHTML = savedPlan.tasks.map((task, index) => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl mb-3 border border-transparent hover:border-indigo-400 transition-all group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full border-2 border-indigo-300 dark:border-slate-500 group-hover:border-indigo-500 flex items-center justify-center cursor-pointer">
+                            <div class="w-3 h-3 bg-indigo-500 rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
+                        </div>
+                        <span class="font-medium">${task.title}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full">${task.time}</span>
+                    </div>
                 </div>
-                <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-1 rounded">${task.time}</span>
-            </div>
-        `).join('');
+            `).join('');
+        }
     }
-}
+});
