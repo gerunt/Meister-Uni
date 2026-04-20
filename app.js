@@ -1,78 +1,109 @@
-// --- DARK MODE LOGIK ---
-const themeToggle = document.getElementById('theme-toggle');
-const htmlElement = document.documentElement;
+// --- GLOBALER STATE (Datenbank-Simulation) ---
+const DB = {
+    save: (key, data) => localStorage.setItem('meister_' + key, JSON.stringify(data)),
+    get: (key) => JSON.parse(localStorage.getItem('meister_' + key)) || null
+};
 
-// Beim Starten den gespeicherten Modus laden
-if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    htmlElement.classList.add('dark');
-}
-
-themeToggle?.addEventListener('click', () => {
-    htmlElement.classList.toggle('dark');
-    localStorage.setItem('theme', htmlElement.classList.contains('dark') ? 'dark' : 'light');
-});
-
-
-// --- LERNPLAN GENERATOR LOGIK ---
-function generateMeisterPlan() {
-    const subjectInput = document.getElementById('subject');
-    const dateInput = document.getElementById('exam-date');
-    const hoursInput = document.getElementById('hours');
-
-    if (!dateInput.value) {
-        alert("Bitte wähle ein Datum für deine Prüfung aus!");
-        return;
+// --- AUTH SYSTEM ---
+const Auth = {
+    check: () => {
+        const user = DB.get('user');
+        if (!user && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('index.html')) {
+            window.location.href = 'login.html';
+        }
+        return user;
+    },
+    login: (username) => {
+        DB.save('user', { username, uni: 'Deine Uni', major: 'Dein Fach', joined: new Date().toLocaleDateString() });
+        window.location.href = 'dashboard.html';
+    },
+    logout: () => {
+        localStorage.removeItem('meister_user');
+        window.location.href = 'index.html';
     }
+};
 
-    // Ein neues Plan-Objekt erstellen
-    const newPlan = {
-        subject: subjectInput.value || "Allgemeines Studium",
-        examDate: dateInput.value,
-        weeklyHours: hoursInput.value,
-        tasks: [
-            { title: "Material sammeln & sichten", time: "2h", done: false },
-            { title: "Kernkonzepte zusammenfassen", time: "4h", done: false },
-            { title: "Übungsfragen beantworten", time: "3h", done: false },
-            { title: "Simulation der Prüfung", time: "5h", done: false },
-            { title: "Wiederholung Problemthemen", time: "2h", done: false }
-        ]
-    };
+// --- DARK MODE ---
+const initTheme = () => {
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+};
 
-    // Im Browser-Speicher ablegen
-    localStorage.setItem('activePlan', JSON.stringify(newPlan));
+// --- LERNPLAN GENERATOR (Advanced) ---
+const Generator = {
+    create: () => {
+        const plan = {
+            id: Date.now(),
+            subject: document.getElementById('subject').value,
+            uni: document.getElementById('uni').value,
+            type: document.getElementById('task-type').value,
+            deadline: document.getElementById('exam-date').value,
+            hours: document.getElementById('hours').value,
+            difficulty: document.getElementById('level').value,
+            tasks: [
+                { id: 1, title: "Sichtung & Strukturierung", time: "2h", done: false, priority: "hoch" },
+                { id: 2, title: "Kernkonzepte erarbeiten", time: "5h", done: false, priority: "hoch" },
+                { id: 3, title: "Zusammenfassung schreiben", time: "4h", done: false, priority: "mittel" },
+                { id: 4, title: "Anwendung & Übung", time: "6h", done: false, priority: "hoch" },
+                { id: 5, title: "Finale Wiederholung", time: "3h", done: false, priority: "mittel" }
+            ],
+            progress: 0
+        };
+        const allPlans = DB.get('plans') || [];
+        allPlans.push(plan);
+        DB.save('plans', allPlans);
+        DB.save('activePlan', plan); // Aktuellster Plan
+        window.location.href = 'dashboard.html';
+    }
+};
 
-    // Zum Dashboard wechseln
-    window.location.href = 'dashboard.html';
-}
-
-
-// --- DASHBOARD ANZEIGE LOGIK ---
+// --- INITIALISIERUNG BEIM LADEN ---
 window.addEventListener('DOMContentLoaded', () => {
-    // Prüfen, ob wir auf dem Dashboard sind
-    const taskContainer = document.getElementById('task-container');
-    const subjectDisplay = document.getElementById('display-subject');
-
-    if (taskContainer && subjectDisplay) {
-        const savedPlan = JSON.parse(localStorage.getItem('activePlan'));
-
-        if (savedPlan) {
-            // Titel setzen
-            subjectDisplay.innerText = savedPlan.subject;
-
-            // Aufgaben-Liste bauen
-            taskContainer.innerHTML = savedPlan.tasks.map((task, index) => `
-                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl mb-3 border border-transparent hover:border-indigo-400 transition-all group">
-                    <div class="flex items-center gap-3">
-                        <div class="w-6 h-6 rounded-full border-2 border-indigo-300 dark:border-slate-500 group-hover:border-indigo-500 flex items-center justify-center cursor-pointer">
-                            <div class="w-3 h-3 bg-indigo-500 rounded-full scale-0 group-hover:scale-100 transition-transform"></div>
-                        </div>
-                        <span class="font-medium">${task.title}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-indigo-600 bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full">${task.time}</span>
-                    </div>
-                </div>
-            `).join('');
+    initTheme();
+    const user = Auth.check();
+    if(user) {
+        const navLink = document.getElementById('user-nav-link');
+        if(navLink) navLink.innerHTML = `<span class="flex items-center gap-2"><i data-lucide="user"></i> ${user.username}</span>`;
+    }
+    if(typeof lucide !== 'undefined') lucide.createIcons();
+    
+    // Dashboard Daten laden
+    if(window.location.pathname.includes('dashboard.html')) {
+        const plan = DB.get('activePlan');
+        if(plan) {
+            document.getElementById('display-subject').innerText = plan.subject;
+            renderDashboardTasks(plan);
         }
     }
 });
+
+function renderDashboardTasks(plan) {
+    const container = document.getElementById('task-container');
+    if(!container) return;
+    container.innerHTML = plan.tasks.map(t => `
+        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl mb-3 border border-gray-100 dark:border-slate-700 hover:border-indigo-500 transition-all shadow-sm">
+            <div class="flex items-center gap-3">
+                <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${t.id})" class="w-5 h-5 rounded accent-indigo-600">
+                <span class="${t.done ? 'line-through text-gray-400' : 'font-medium'}">${t.title}</span>
+            </div>
+            <span class="text-xs font-bold text-indigo-600">${t.time}</span>
+        </div>
+    `).join('');
+}
+
+function toggleTask(taskId) {
+    let plan = DB.get('activePlan');
+    const task = plan.tasks.find(t => t.id === taskId);
+    task.done = !task.done;
+    const doneCount = plan.tasks.filter(t => t.done).length;
+    plan.progress = Math.round((doneCount / plan.tasks.length) * 100);
+    DB.save('activePlan', plan);
+    renderDashboardTasks(plan);
+    document.getElementById('progress-bar').style.width = plan.progress + '%';
+    document.getElementById('progress-text').innerText = plan.progress + '%';
+}
